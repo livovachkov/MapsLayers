@@ -1,5 +1,4 @@
 
-
 <?php
 /**
  * Plugin Name: MapsLayers
@@ -44,7 +43,8 @@ if(!$result) {
 	"info_window" => 'A',
 	"zoom" => '14',
 	"companycode" => '',
-	"maptype" => 'm'
+	"maptype" => 'm',
+    "readdb" => '1'
     ), $atts));
 	
 	
@@ -56,49 +56,26 @@ if(!$result) {
 	       }
 	    </style>
 	    
-	    <div id="map" class="vsg-map" align="'.$aling.'"></div>
-	    
-	    <script>
-		function initMap() {
-		  var sofia = {lat: 42.697863, lng: 23.322179};
-		  var map = new google.maps.Map(document.getElementById(\'map\'), {zoom: '.$zoom.', center: sofia});
-		  var marker = new google.maps.Marker({position: sofia, map: map});
-		}
-
-	    </script>
-	    <script defer
-	    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAbMXzvkDi2QnjeYR0JDSd3GAQVdw4MSKY&callback=initMap">
-	    </script>';
-	    
-	if(mysqli_num_rows($result) > 0) {
-		
-		while($row = mysqli_fetch_array($result)) {
-			 echo('
-				
-			<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAbMXzvkDi2QnjeYR0JDSd3GAQVdw4MSKY">
-			function addMarker(location, map) {
-				var marker = new google.maps.Marker({
-				position: location,
-				map: map});
-			};
-			
-			var location = {lat: '.floatval($row["lat"]).', lng: '.floatval($row["lng"]).'};
-			
-			addMarker(location, document.getElementById(\'map\'));
-			
-			</script>');
-  		}
-		
-		mysqli_free_result($result);
+	    <div id="map" class="vsg-map" align=".aling."></div>';
+    echo($jscript);
+    if($readdb == 1) {
+        $jscript2 = '<script src="http://localhost/blog/wp-content/plugins/MapsLayers/script.js" type="text/javascript"></script><script type="text/javascript">window.onload=function() { var location; var i = 0;';
+        if(mysqli_num_rows($result) > 0) {
+            
+            while($row = mysqli_fetch_array($result)) {
+                //$jscript2 .= 'location = new google.maps.LatLng('.floatval($row["lat"]).', '.floatval($row["lng"]).'); addMarker(location, document.getElementById("map"));';
+                $jscript2 .= 'location = {lat: parseFloat('.$row["lat"].'), lng: parseFloat('.$row["lng"].')};var mark = []; mark[i] = addMarker(location, document.getElementById(\'map\'));';
+            }
+            $jscript2 .= '};</script>';
+            mysqli_free_result($result);
+        }
+        mysqli_close($conn);
+        
+        return $jscript2;
 	}
-	mysqli_close($conn);
-	
-	return $jscript;
-	
+
 }
     
         
 add_shortcode("vsgmap", "vsg_maps_shortcode");
 ?>
-
-
